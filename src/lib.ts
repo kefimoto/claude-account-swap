@@ -293,13 +293,16 @@ export function checkUsage(): UsageResult {
   const resultEvent = events.find((e) => e.type === "result");
   const text: string = resultEvent?.result ?? "";
 
+  // The "· resets ..." clause is absent entirely when usage is 0% (no
+  // window running yet) - make it optional rather than requiring it, or
+  // parsing silently fails on exactly the case priming most needs to catch.
   const m =
-    /Current session:\s*(\d+)%\s*used\s*·\s*resets\s*([A-Za-z]{3} \d{1,2}),\s*(\d{1,2}:\d{2}[ap]m)\s*\(([^)]+)\)/.exec(
+    /Current session:\s*(\d+)%\s*used(?:\s*·\s*resets\s*([A-Za-z]{3} \d{1,2}),\s*(\d{1,2}:\d{2}[ap]m)\s*\(([^)]+)\))?/.exec(
       text
     );
   if (!m) return { pct: null, resetsAt: null };
   const pct = Number(m[1]);
-  const resetsAt = zonedTimeToEpoch(m[2], m[3], m[4]);
+  const resetsAt = m[2] ? zonedTimeToEpoch(m[2], m[3], m[4]) : null;
   return { pct, resetsAt };
 }
 

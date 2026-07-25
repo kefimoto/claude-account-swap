@@ -123,13 +123,16 @@ infrequently-used accounts' refresh tokens exercised so they don't expire.
 Add to cron (adjust the path):
 
 ```
-*/20 * * * * /absolute/path/to/claude-account-swap/src/cli.ts prime
+*/20 * * * * /absolute/path/to/claude-account-swap/bin/prime-cron.sh
 ```
 
-(Cron runs with a minimal `PATH`; `prime` shells out to `claude` via a login
-shell internally, so this works even though cron itself won't have `bun` or
-`claude` on its default `PATH` — as long as your normal shell rc file
-[`.bashrc`/`.zshrc`] is what puts them there.)
+Cron runs jobs with a minimal `PATH` — no `bun`, no `claude-account-swap`.
+Don't point cron directly at `src/cli.ts`; its `#!/usr/bin/env bun` shebang
+needs `bun` on `PATH` just to start the process, which a bare cron
+environment doesn't have. `bin/prime-cron.sh` runs everything through a login
+shell (`bash -lc`) instead, so it resolves the same way your interactive
+shell does (as long as your `.bashrc`/`.zshrc` is what puts `bun` and
+`claude` on `PATH` — true for nvm/bun's default install instructions).
 
 ## Config location
 
